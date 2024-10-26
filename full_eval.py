@@ -93,7 +93,7 @@ if not args.skip_training:
 
 with open(os.path.join(args.output_path, "timing.txt"), "w") as file:
     file.write(
-        f"m360: {m360_timing} minutes \n scannetpp: {scannetpp_timing} minutes \n"
+        f"m360: {m360_timing} minutes \nscannetpp: {scannetpp_timing} minutes \n"
     )
 
 if not args.skip_rendering:

@@ -392,6 +392,15 @@ def training_report(
             )
         torch.cuda.empty_cache()
 
+    if iteration == 30000:
+        if tb_writer:
+            tb_writer.add_histogram(
+                "scene/opacity_histogram", scene.gaussians.get_opacity, iteration
+            )
+            tb_writer.add_scalar(
+                "total_points", scene.gaussians.get_xyz.shape[0], iteration
+            )
+
 
 if __name__ == "__main__":
     # Set up command line argument parser
