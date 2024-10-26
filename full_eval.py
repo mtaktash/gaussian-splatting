@@ -13,6 +13,7 @@ import os
 import time
 from argparse import ArgumentParser
 
+blender_scenes = ["textured_plane_with_cube"]
 mipnerf360_outdoor_scenes = ["garden"]
 mipnerf360_indoor_scenes = ["room"]
 scannetpp_scenes = [
@@ -30,7 +31,6 @@ scannetpp_scenes = [
     "5748ce6f01",
     "7079b59642",
 ]
-blender_scenes = ["textured_plane_with_cube"]
 
 parser = ArgumentParser(description="Full evaluation script parameters")
 parser.add_argument("--skip_training", action="store_true")
@@ -53,6 +53,20 @@ if not args.skip_training or not args.skip_rendering:
 if not args.skip_training:
     os.makedirs(args.output_path, exist_ok=True)
     common_args = " --quiet --eval --test_iterations -1 --ip 127.0.0.20"
+
+    start_time = time.time()
+    for scene in blender_scenes:
+        source = args.blender + "/" + scene
+        os.system(
+            "python train.py -s "
+            + source
+            + " -m "
+            + args.output_path
+            + "/"
+            + scene
+            + common_args
+        )
+    blender_timing = (time.time() - start_time) / 60.0
 
     start_time = time.time()
     for scene in mipnerf360_outdoor_scenes:
@@ -93,19 +107,6 @@ if not args.skip_training:
         )
     scannetpp_timing = (time.time() - start_time) / 60.0
 
-    start_time = time.time()
-    for scene in blender_scenes:
-        source = args.blender + "/" + scene
-        os.system(
-            "python train.py -s "
-            + source
-            + " -m "
-            + args.output_path
-            + "/"
-            + scene
-            + common_args
-        )
-    blender_timing = (time.time() - start_time) / 60.0
 
 with open(os.path.join(args.output_path, "timing.txt"), "w") as file:
     file.write(
