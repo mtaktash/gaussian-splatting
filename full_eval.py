@@ -43,10 +43,8 @@ all_scenes.extend(mipnerf360_indoor_scenes)
 all_scenes.extend(scannetpp_scenes)
 
 if not args.skip_training or not args.skip_rendering:
-    parser.add_argument("--mipnerf360", "-m360", type=str, default="/mnt/data/360_v2")
-    parser.add_argument(
-        "--scannetpp", "-spp", type=str, default="/mnt/data/scannetpp/data"
-    )
+    parser.add_argument("--mipnerf360", "-m360", type=str, required=True)
+    parser.add_argument("--scannetpp", "-spp", type=str, required=True)
     args = parser.parse_args()
 
 if not args.skip_training:
