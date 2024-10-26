@@ -10,6 +10,7 @@
 #
 
 import os
+import time
 from argparse import ArgumentParser
 
 mipnerf360_outdoor_scenes = ["garden"]
@@ -50,6 +51,8 @@ if not args.skip_training or not args.skip_rendering:
 if not args.skip_training:
     os.makedirs(args.output_path, exist_ok=True)
     common_args = " --quiet --eval --test_iterations -1 --ip 127.0.0.20"
+
+    start_time = time.time()
     for scene in mipnerf360_outdoor_scenes:
         source = args.mipnerf360 + "/" + scene
         os.system(
@@ -72,6 +75,9 @@ if not args.skip_training:
             + scene
             + common_args
         )
+    m360_timing = (time.time() - start_time) / 60.0
+
+    start_time = time.time()
     for scene in scannetpp_scenes:
         source = args.scannetpp + "/" + scene
         os.system(
@@ -83,7 +89,12 @@ if not args.skip_training:
             + scene
             + common_args
         )
+    scannetpp_timing = (time.time() - start_time) / 60.0
 
+with open(os.path.join(args.output_path, "timing.txt"), "w") as file:
+    file.write(
+        f"m360: {m360_timing} minutes \n scannetpp: {scannetpp_timing} minutes \n"
+    )
 
 if not args.skip_rendering:
     all_sources = []
