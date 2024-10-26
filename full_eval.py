@@ -19,7 +19,6 @@ mipnerf360_indoor_scenes = ["room"]
 scannetpp_scenes = [
     "2e74812d00",
     "0a7cc12c0e",
-    "0a76e06478",
     "0cf2e9402d",
     "0e75f3c4d9",
     "1ae9e5d2a6",
