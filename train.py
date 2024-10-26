@@ -224,7 +224,7 @@ def training(
                 testing_iterations,
                 scene,
                 render,
-                (pipe, background, dataset.train_test_exp, SPARSE_ADAM_AVAILABLE),
+                (pipe, background),
                 dataset.train_test_exp,
             )
             if iteration in saving_iterations:
