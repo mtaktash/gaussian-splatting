@@ -40,14 +40,15 @@ parser.add_argument("--output_path", default="./eval")
 args, _ = parser.parse_known_args()
 
 all_scenes = []
+all_scenes.extend(blender_scenes)
 all_scenes.extend(mipnerf360_outdoor_scenes)
 all_scenes.extend(mipnerf360_indoor_scenes)
 all_scenes.extend(scannetpp_scenes)
 
 if not args.skip_training or not args.skip_rendering:
+    parser.add_argument("--blender", "-blen", type=str, required=True)
     parser.add_argument("--mipnerf360", "-m360", type=str, required=True)
     parser.add_argument("--scannetpp", "-spp", type=str, required=True)
-    parser.add_argument("--blender", "-blen", type=str, required=True)
     args = parser.parse_args()
 
 if not args.skip_training:
@@ -115,14 +116,14 @@ with open(os.path.join(args.output_path, "timing.txt"), "w") as file:
 
 if not args.skip_rendering:
     all_sources = []
+    for scene in blender_scenes:
+        all_sources.append(args.blender + "/" + scene)
     for scene in mipnerf360_outdoor_scenes:
         all_sources.append(args.mipnerf360 + "/" + scene)
     for scene in mipnerf360_indoor_scenes:
         all_sources.append(args.mipnerf360 + "/" + scene)
     for scene in scannetpp_scenes:
         all_sources.append(args.scannetpp + "/" + scene)
-    for scene in blender_scenes:
-        all_sources.append(args.blender + "/" + scene)
 
     common_args = " --quiet --eval --skip_train"
     for scene, source in zip(all_scenes, all_sources):
