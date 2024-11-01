@@ -29,6 +29,13 @@ scannetpp_scenes = [
     "5748ce6f01",
     "7079b59642",
 ]
+hypersim_scenes = [
+    "ai_001_003",
+    "ai_001_004",
+    "ai_003_010",
+    "ai_004_003",
+    "ai_005_001",
+]
 
 parser = ArgumentParser(description="Full evaluation script parameters")
 parser.add_argument("--skip_training", action="store_true")
@@ -47,6 +54,7 @@ if not args.skip_training or not args.skip_rendering:
     parser.add_argument("--blender", "-blen", type=str, required=True)
     parser.add_argument("--mipnerf360", "-m360", type=str, required=True)
     parser.add_argument("--scannetpp", "-spp", type=str, required=True)
+    parser.add_argument("--hypersim", "-hp", type=str, required=True)
     args = parser.parse_args()
 
 if not args.skip_training:
@@ -106,10 +114,24 @@ if not args.skip_training:
         )
     scannetpp_timing = (time.time() - start_time) / 60.0
 
+    start_time = time.time()
+    for scene in hypersim_scenes:
+        source = args.hypersim + "/" + scene
+        os.system(
+            "python train.py -s "
+            + source
+            + " -m "
+            + args.output_path
+            + "/"
+            + scene
+            + common_args
+        )
+    hypersim_timing = (time.time() - start_time) / 60.0
+
 
 with open(os.path.join(args.output_path, "timing.txt"), "w") as file:
     file.write(
-        f"m360: {m360_timing} minutes \nscannetpp: {scannetpp_timing} minutes \nblender: {blender_timing} minutes \n"
+        f"m360: {m360_timing} minutes \nscannetpp: {scannetpp_timing} minutes \nblender: {blender_timing} minutes \nhypersim: {hypersim_timing} minutes \n"
     )
 
 if not args.skip_rendering:
@@ -122,6 +144,8 @@ if not args.skip_rendering:
         all_sources.append(args.mipnerf360 + "/" + scene)
     for scene in scannetpp_scenes:
         all_sources.append(args.scannetpp + "/" + scene)
+    for scene in hypersim_scenes:
+        all_sources.append(args.hypersim + "/" + scene)
 
     common_args = " --quiet --eval --skip_train"
     for scene, source in zip(all_scenes, all_sources):
