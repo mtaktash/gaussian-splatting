@@ -49,12 +49,13 @@ all_scenes.extend(blender_scenes)
 all_scenes.extend(mipnerf360_outdoor_scenes)
 all_scenes.extend(mipnerf360_indoor_scenes)
 all_scenes.extend(scannetpp_scenes)
+all_scenes.extend(hypersim_scenes)
 
 if not args.skip_training or not args.skip_rendering:
     parser.add_argument("--blender", "-blen", type=str, required=True)
     parser.add_argument("--mipnerf360", "-m360", type=str, required=True)
     parser.add_argument("--scannetpp", "-spp", type=str, required=True)
-    parser.add_argument("--hypersim", "-hp", type=str, required=True)
+    parser.add_argument("--hypersim", type=str, required=True)
     args = parser.parse_args()
 
 if not args.skip_training:
