@@ -557,6 +557,7 @@ def readScannetppDSLRInfo(path, eval, init_type="sfm"):
         test_cameras=test_cam_infos,
         nerf_normalization=nerf_normalization,
         ply_path=ply_path,
+        is_nerf_synthetic=False,
     )
     return scene_info
 
@@ -594,6 +595,7 @@ def readScannetpIphoneInfo(path, eval, llffhold=8, init_type="sfm"):
         test_cameras=test_cam_infos,
         nerf_normalization=nerf_normalization,
         ply_path=ply_path,
+        is_nerf_synthetic=False,
     )
     return scene_info
 
