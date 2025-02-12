@@ -480,8 +480,46 @@ def readCamerasInstantNGPTransforms(
         return cam_infos
 
 
-def readScannetppInfo(path, eval, num_pts=100000, init_type="sfm"):
-    path = os.path.join(path, "dslr")
+def init_scannetpp_pcd(init_type, path, num_pts, nerf_normalization):
+
+    if init_type == "sfm":
+        ply_path = os.path.join(path, "colmap/points3D.ply")
+        bin_path = os.path.join(path, "colmap/points3D.bin")
+        txt_path = os.path.join(path, "colmap/points3D.txt")
+        if not os.path.exists(ply_path):
+            print(
+                "Converting point3d to .ply, will happen only the first time you open the scene."
+            )
+            try:
+                xyz, rgb, _ = read_points3D_binary(bin_path)
+            except:
+                xyz, rgb, _ = read_points3D_text(txt_path)
+            storePly(ply_path, xyz, rgb)
+
+    elif init_type == "random":
+        ply_path = os.path.join(path, "random.ply")
+        print(f"Generating random point cloud ({num_pts})...")
+
+        xyz = np.random.random((num_pts, 3)) * nerf_normalization["radius"] * 3 * 2 - (
+            nerf_normalization["radius"] * 3
+        )
+
+        num_pts = xyz.shape[0]
+        shs = np.random.random((num_pts, 3)) / 255.0
+        pcd = BasicPointCloud(
+            points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3))
+        )
+
+        storePly(ply_path, xyz, SH2RGB(shs) * 255)
+
+    else:
+        print("Please specify a correct init_type: random or sfm")
+        exit(0)
+
+    return ply_path
+
+
+def readScannetppDSLRInfo(path, eval, init_type="sfm"):
 
     print("Reading train transforms")
     train_cam_infos = readCamerasInstantNGPTransforms(
@@ -506,35 +544,7 @@ def readScannetppInfo(path, eval, num_pts=100000, init_type="sfm"):
     )
 
     nerf_normalization = getNerfppNorm(train_cam_infos)
-
-    if init_type == "sfm":
-        ply_path = os.path.join(path, "colmap/points3D.ply")
-        txt_path = os.path.join(path, "colmap/points3D.txt")
-        if not os.path.exists(ply_path):
-            print(
-                "Converting point3d.txt to .ply, will happen only the first time you open the scene."
-            )
-            xyz, rgb, _ = read_points3D_text(txt_path)
-            storePly(ply_path, xyz, rgb)
-
-    elif init_type == "random":
-        ply_path = os.path.join(path, "random.ply")
-        print(f"Generating random point cloud ({num_pts})...")
-
-        xyz = np.random.random((num_pts, 3)) * nerf_normalization["radius"] * 3 * 2 - (
-            nerf_normalization["radius"] * 3
-        )
-
-        num_pts = xyz.shape[0]
-        shs = np.random.random((num_pts, 3)) / 255.0
-        pcd = BasicPointCloud(
-            points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3))
-        )
-
-        storePly(ply_path, xyz, SH2RGB(shs) * 255)
-    else:
-        print("Please specify a correct init_type: random or sfm")
-        exit(0)
+    ply_path = init_scannetpp_pcd(init_type, path, 100_000, nerf_normalization)
 
     try:
         pcd = fetchPly(ply_path)
@@ -547,12 +557,48 @@ def readScannetppInfo(path, eval, num_pts=100000, init_type="sfm"):
         test_cameras=test_cam_infos,
         nerf_normalization=nerf_normalization,
         ply_path=ply_path,
-        is_nerf_synthetic=False,
     )
     return scene_info
 
 
-def readHyperSimInfo(source_path, eval, num_pts=100000):
+def readScannetpIphoneInfo(path, eval, llffhold=8, init_type="sfm"):
+
+    cam_infos = readCamerasInstantNGPTransforms(
+        os.path.join(path, "nerfstudio/transforms_undistorted.json"),
+        os.path.join(path, "undistorted_images"),
+        test=False,
+    )
+    if llffhold > 0:
+        train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 0]
+        test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold == 0]
+
+    if not eval:
+        train_cam_infos.extend(test_cam_infos)
+        test_cam_infos = []
+
+    print(
+        f"Num train cameras: {len(train_cam_infos)}, num test cameras: {len(test_cam_infos)}"
+    )
+
+    nerf_normalization = getNerfppNorm(train_cam_infos)
+    ply_path = init_scannetpp_pcd(init_type, path, 100_000, nerf_normalization)
+
+    try:
+        pcd = fetchPly(ply_path)
+    except:
+        pcd = None
+
+    scene_info = SceneInfo(
+        point_cloud=pcd,
+        train_cameras=train_cam_infos,
+        test_cameras=test_cam_infos,
+        nerf_normalization=nerf_normalization,
+        ply_path=ply_path,
+    )
+    return scene_info
+
+
+def readHyperSimInfo(source_path, eval, num_pts):
 
     print("Reading train transforms")
     train_cam_infos = readCamerasInstantNGPTransforms(
@@ -604,7 +650,6 @@ def readHyperSimInfo(source_path, eval, num_pts=100000):
         test_cameras=test_cam_infos,
         nerf_normalization=nerf_normalization,
         ply_path=ply_path,
-        is_nerf_synthetic=False,
     )
     return scene_info
 
@@ -612,6 +657,7 @@ def readHyperSimInfo(source_path, eval, num_pts=100000):
 sceneLoadTypeCallbacks = {
     "Colmap": readColmapSceneInfo,
     "Blender": readNerfSyntheticInfo,
-    "Scannetpp": readScannetppInfo,
+    "ScannetppDSLR": readScannetppDSLRInfo,
+    "ScannetppIPhone": readScannetpIphoneInfo,
     "HyperSim": readHyperSimInfo,
 }

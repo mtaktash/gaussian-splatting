@@ -63,11 +63,27 @@ class Scene:
             scene_info = sceneLoadTypeCallbacks["Blender"](
                 args.source_path, args.white_background, args.depths, args.eval
             )
-        elif os.path.exists(os.path.join(args.source_path, "dslr")):
-            print("Found dlsr folder, assuming Scannetpp data set!")
-            scene_info = sceneLoadTypeCallbacks["Scannetpp"](
-                args.source_path, args.eval
-            )
+        elif os.path.exists(os.path.join(args.source_path, "undistorted_images")):
+
+            if args.source_path.endswith("dslr"):
+                print("Found dlsr folder, assuming ScannetppDSLR data set!")
+
+                scene_info = sceneLoadTypeCallbacks["ScannetppDSLR"](
+                    args.source_path,
+                    args.eval,
+                )
+                self.scene_type = "InstantNGP"
+
+            elif args.source_path.endswith("iphone"):
+                print("Found iphone folder, assuming ScannetppIPhone data set!")
+
+                scene_info = sceneLoadTypeCallbacks["ScannetppIPhone"](
+                    args.source_path,
+                    args.eval,
+                    llffhold=8,
+                )
+                self.scene_type = "InstantNGP"
+
         elif os.path.exists(os.path.join(args.source_path, "transforms.json")):
             print("Found train folder, assuming HyperSim (InstantNGP style) data set!")
             scene_info = sceneLoadTypeCallbacks["HyperSim"](args.source_path, args.eval)

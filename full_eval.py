@@ -13,28 +13,34 @@ import os
 import time
 from argparse import ArgumentParser
 
-blender_scenes = ["textured_plane_with_cube"]
-mipnerf360_outdoor_scenes = ["garden"]
-mipnerf360_indoor_scenes = ["room"]
+blender_scenes = [
+    # "textured_plane_with_cube"
+]
+mipnerf360_outdoor_scenes = [
+    # "garden"
+]
+mipnerf360_indoor_scenes = [
+    # "room"
+]
 scannetpp_scenes = [
-    "2e74812d00",
     "0a7cc12c0e",
-    "0cf2e9402d",
-    "0e75f3c4d9",
-    "1ae9e5d2a6",
-    "1b75758486",
-    "1c4b893630",
-    "4c5c60fa76",
-    "4ea827f5a1",
-    "5748ce6f01",
-    "7079b59642",
+    # "0cf2e9402d",
+    # "0e75f3c4d9",
+    # "1ae9e5d2a6",
+    # "1b75758486",
+    # "1c4b893630",
+    # "2e74812d00",
+    # "4c5c60fa76",
+    # "4ea827f5a1",
+    # "5748ce6f01",
+    # "7079b59642",
 ]
 hypersim_scenes = [
-    "ai_001_003",
-    "ai_001_004",
-    "ai_003_010",
-    "ai_004_003",
-    "ai_005_001",
+    # "ai_001_003",
+    # "ai_001_004",
+    # "ai_003_010",
+    # "ai_004_003",
+    # "ai_005_001",
 ]
 
 parser = ArgumentParser(description="Full evaluation script parameters")
@@ -60,7 +66,7 @@ if not args.skip_training or not args.skip_rendering:
 
 if not args.skip_training:
     os.makedirs(args.output_path, exist_ok=True)
-    common_args = " --quiet --eval --test_iterations -1 --ip 127.0.0.20"
+    common_args = " --eval --test_iterations -1 --resolution 2 --ip 127.0.0.20"
 
     start_time = time.time()
     for scene in blender_scenes:
@@ -103,7 +109,7 @@ if not args.skip_training:
 
     start_time = time.time()
     for scene in scannetpp_scenes:
-        source = args.scannetpp + "/" + scene
+        source = args.scannetpp + "/" + scene + "/iphone"
         os.system(
             "python train.py -s "
             + source
@@ -144,7 +150,7 @@ if not args.skip_rendering:
     for scene in mipnerf360_indoor_scenes:
         all_sources.append(args.mipnerf360 + "/" + scene)
     for scene in scannetpp_scenes:
-        all_sources.append(args.scannetpp + "/" + scene)
+        all_sources.append(args.scannetpp + "/" + scene + "/iphone")
     for scene in hypersim_scenes:
         all_sources.append(args.hypersim + "/" + scene)
 
